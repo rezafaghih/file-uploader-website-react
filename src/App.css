@@ -1,0 +1,99 @@
+
+body{
+  margin: 0;
+  background-color: #000319;
+  padding: 0;
+}
+
+.container{
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
+
+
+.header-container{
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color:white;
+}
+
+.file-uploader-component{
+  position: relative;
+  width: 90%;
+  height: 300px;
+  display: flex;
+  border-radius: 10px;
+  margin: 20px 0px;
+  /* border: 1px dashed rgb(99, 99, 99); */
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transition: 500ms;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.144);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.file-uploader-component::before{
+  content: '';
+  position: absolute;
+  left: -35px;
+  top: -35px;
+  width: 150px;
+  height: 150px;
+  filter: blur(100px);
+  background-color: rgba(255, 255, 255, 0.397);
+  border-radius: 100%;
+  transition: 500ms;
+}
+
+.file-uploader-component::after{
+  content: '';
+  position: absolute;
+  right: 0%;
+  bottom:  -200px;
+  width: 350px;
+  height: 350px;
+  filter: blur(100px);
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 100%;
+  transition: 500ms;
+}
+
+
+
+.file-uploader-component span{
+  font-size: 1.5rem;
+}
+
+.file-uploader-component p{
+  color:gray;
+}
+
+.file-uploader-component img{
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+}
+
+.file-uploader-component:hover:after{
+  right: 80%;
+  bottom: 90%;
+  width: 500px;
+  height: 500px;
+}
+
+
+.file-uploader-component:hover:before{
+  left: 80%;
+  top: 90%;
+  width: 200px;
+  height: 200px;
+}

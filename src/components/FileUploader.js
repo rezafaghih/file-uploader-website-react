@@ -1,16 +1,17 @@
 import { useState, useRef } from 'react';
-import uploadIcon from "../upload-icon.png"
-
+import uploadIcon from "../upload-icon.webp"
+import axios from 'axios';
 
 export const FileUploaderComponent =()=>{
-    const [fileName, setFileName] = useState(null)
-    const [fileSize, setFileSize] = useState(null)
-    const [file, setFile] = useState(null)
-    const inputRef = useRef(null)
-
-    
+    const [fileName, setFileName] = useState(null);
+    const [fileSize, setFileSize] = useState(null);
+    const [file, setFile] = useState(null);
+    const inputRef = useRef(null) 
   
-    const toggleUploaderComponent = ()=>{
+    const toggleUploaderComponent = (event)=>{
+        if (event.target.tagName == "INPUT" || event.target.tagName == "LABEL"  || event.target.tagName == "SELECT"){
+            return;
+        }
         if (!file){
             inputRef.current.click()
         }
@@ -18,7 +19,6 @@ export const FileUploaderComponent =()=>{
   
     const fileChange =(event)=>{
       var file = event.target.files[0]
-      console.log(file)
       setFileName(file.name);
       setFileSize(file.size)
       setFile(file);
@@ -28,13 +28,14 @@ export const FileUploaderComponent =()=>{
         return (
         <>
             <img src={uploadIcon} />
-            <span>انتخاب فایل جهت آپلود</span>
+            <span>انتخاب فایل</span>
             <p>
-                حداکثر حجم فایل 150 مگابایت میباشد هر فایل به مدت 7 روز و برای اشتراک ویژه به مدت 1 سال باقی میماند   
+                با کلیک بر روی این باکس فایل خود را جهت آپلود انتخاب کنید (حداکثر حجم 150 مگابایت)
             </p>
         </>
         )
     }
+
 
     const generateNumber = (number)=>{
         var floor = Math.floor(number/1000)
@@ -51,13 +52,21 @@ export const FileUploaderComponent =()=>{
     const startUploadingFile = ()=>{
         if (file){
             var form = new FormData();
-            form.append(file)
+            var password = document.querySelector("#file-password");
+            var days = document.querySelector("#file-days");
 
+            form.append("file", file);
+            form.append("password", password.value);
+            form.append("days", days.value);
             
-        }
-        
-    }
+            // file 
+            // password
+            // days -> 1, 3, 7, 15, 30
+            axios.post("http://localhost/uploader-api/api/uploadFile/", form).then((res)=>{
 
+            })
+        }        
+    }
     const selectNewFile = ()=>{
         if (file){
             setFile(null)
@@ -66,7 +75,6 @@ export const FileUploaderComponent =()=>{
             inputRef.current.value = ""
         }
     }
-
     const FileSelectedComponent = ()=>{
         return (
         <>
@@ -85,11 +93,32 @@ export const FileUploaderComponent =()=>{
         </>
         )
     }
-    
     return (
       <div className='file-uploader-component' onClick = {toggleUploaderComponent}>
         {fileName == null ? <UploadFile/> : <FileSelectedComponent/>}
         
+        <div className='row'>
+            <div className = "input-container">
+                <label>
+                    رمز فایل <sub>اختیاری</sub>
+                </label>
+                <input type = "password" className='form-input' id = "file-password"/>
+            </div>
+            
+            <div className = "input-container">
+                <label>
+                   فایل بعد از چند روز حذف شود
+                </label>
+                <select className='form-input' id = "file-days">
+                    <option hidden selected value = "-1">انتخاب زمان حذف فایل</option>
+                    <option value = "1">1 روز</option>
+                    <option value = "2">3 روز</option>
+                    <option value = "3">7 روز</option>
+                    <option value = "4">15 روز</option>
+                    <option value = "5">30 روز</option>
+                </select>
+            </div>
+        </div>
         <input
           type = "file"
           hidden

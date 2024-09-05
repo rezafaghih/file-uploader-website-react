@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect} from 'react';
 import uploadIcon from "../upload-icon.webp"
 import axios from 'axios';
 
@@ -7,6 +7,12 @@ export const FileUploaderComponent =()=>{
     const [fileSize, setFileSize] = useState(null);
     const [file, setFile] = useState(null);
     const inputRef = useRef(null) 
+    const [callResponse, setCallResponse] = useState(null);
+    const [responseStatus, setResponseStatus] = useState(null);
+    const [url, setFileURL] = useState(null);
+
+    const [filePassword, setFilePassword] = useState("")
+    const [fileDays, setFileDays] = useState(3)
   
     const toggleUploaderComponent = (event)=>{
         if (event.target.tagName == "INPUT" || event.target.tagName == "LABEL"  || event.target.tagName == "SELECT"){
@@ -19,10 +25,18 @@ export const FileUploaderComponent =()=>{
   
     const fileChange =(event)=>{
       var file = event.target.files[0]
+      var password = document.querySelector("#password-input");
+      var days = document.querySelector("#days-input");
+
+      setFileDays(days.value);
+      setFilePassword(password.value);
+
       setFileName(file.name);
       setFileSize(file.size)
       setFile(file);
     }
+
+
 
     const UploadFile = ()=>{
         return (
@@ -32,6 +46,29 @@ export const FileUploaderComponent =()=>{
             <p>
                 با کلیک بر روی این باکس فایل خود را جهت آپلود انتخاب کنید (حداکثر حجم 150 مگابایت)
             </p>
+
+            <div className='row'>
+            <div className = "input-container">
+                <label>
+                    رمز فایل <sub>اختیاری</sub>
+                </label>
+                <input type = "password" id = "password-input" className='form-input'/>
+            </div>
+            
+            <div className = "input-container">
+                <label>
+                   فایل بعد از چند روز حذف شود
+                </label>
+                <select className='form-input' id = "days-input">
+                    <option hidden selected value = "-1">انتخاب زمان حذف فایل</option>
+                    <option value = "1">1 روز</option>
+                    <option value = "2">3 روز</option>
+                    <option value = "3">7 روز</option>
+                    <option value = "4">15 روز</option>
+                    <option value = "5">30 روز</option>
+                </select>
+            </div>
+        </div>
         </>
         )
     }
@@ -52,18 +89,20 @@ export const FileUploaderComponent =()=>{
     const startUploadingFile = ()=>{
         if (file){
             var form = new FormData();
-            var password = document.querySelector("#file-password");
-            var days = document.querySelector("#file-days");
-
             form.append("file", file);
-            form.append("password", password.value);
-            form.append("days", days.value);
+            form.append("password", filePassword);
+            form.append("days", fileDays);
             
             // file 
             // password
             // days -> 1, 3, 7, 15, 30
             axios.post("http://localhost/uploader-api/api/uploadFile/", form).then((res)=>{
-
+                var json = JSON.parse(res.data);
+                if (json.response == "success"){
+                    setResponseStatus("success");
+                    setFileURL(`http://localhost:3000/link/${json.link}`);
+                }
+                setCallResponse(true);
             })
         }        
     }
@@ -72,13 +111,20 @@ export const FileUploaderComponent =()=>{
             setFile(null)
             setFileName(null)
             setFileSize(null)
+            setResponseStatus(null);
+            setFileURL(null)
+            setFilePassword("")
+            setFileDays(3)
+            setCallResponse(null)
             inputRef.current.value = ""
+            
         }
     }
-    const FileSelectedComponent = ()=>{
+
+    const StartUploading = ()=>{
         return (
-        <>
-            <span>فایل انتخاب شد</span>
+            <>
+                 <span>فایل انتخاب شد</span>
             <span style={{fontSize:"14px", marginTop:"15px", color:"gray"}}>{fileName}</span>
             <span style={{fontSize:"14px", color:"gray", direction: "rtl"}}>{generateNumber(fileSize)}</span>
 
@@ -90,35 +136,48 @@ export const FileUploaderComponent =()=>{
                 انتخاب فایل جدید
                 </button>
             </div>
+            </>
+        )
+    }
+
+    const UploadResponse =()=>{
+        if (responseStatus == "success"){
+            return (
+                <>
+                    <div className = "upload-response-container" style={{flexDirection:"column"}}>
+                        <div className='row'>
+                            <div className = "input-container">
+                                <label>
+                                    آدرس فایل
+                                </label>
+                                <input type = "url" className='form-input' id = "file-password" readOnly value = {url}/>
+                            </div>
+                        </div>
+                        <div className='button-rows'>
+                            <button style={{fontSize:"14px", marginTop:"15px", fontFamily:"font"}} className='select-file-btn' onClick = {selectNewFile}>
+                            انتخاب فایل جدید
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )
+        }
+        
+    }
+
+    const FileSelectedComponent = ()=>{
+        return (
+        <>
+            {callResponse == null ? <StartUploading/> : <UploadResponse/>}
         </>
         )
     }
+
     return (
       <div className='file-uploader-component' onClick = {toggleUploaderComponent}>
         {fileName == null ? <UploadFile/> : <FileSelectedComponent/>}
         
-        <div className='row'>
-            <div className = "input-container">
-                <label>
-                    رمز فایل <sub>اختیاری</sub>
-                </label>
-                <input type = "password" className='form-input' id = "file-password"/>
-            </div>
-            
-            <div className = "input-container">
-                <label>
-                   فایل بعد از چند روز حذف شود
-                </label>
-                <select className='form-input' id = "file-days">
-                    <option hidden selected value = "-1">انتخاب زمان حذف فایل</option>
-                    <option value = "1">1 روز</option>
-                    <option value = "2">3 روز</option>
-                    <option value = "3">7 روز</option>
-                    <option value = "4">15 روز</option>
-                    <option value = "5">30 روز</option>
-                </select>
-            </div>
-        </div>
+
         <input
           type = "file"
           hidden
